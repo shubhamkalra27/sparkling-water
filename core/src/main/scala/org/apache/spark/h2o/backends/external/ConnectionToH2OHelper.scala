@@ -45,18 +45,15 @@ object ConnectionToH2OHelper {
       }else{
         val socketChannel =  availableConnections.dequeue()
         if(!socketChannel.isOpen || !socketChannel.isConnected){
-          System.out.println("RERECreating connection for " + nodeDesc)
           // connection closed, open a new one to replace it
           getConnection(nodeDesc)
         }else{
-          System.out.println("Reusing connection for " + nodeDesc)
           socketChannel
         }
       }
     }
 
     def putAvailableConnection(sock: SocketChannel): Unit = {
-      System.out.println("Putting back connection to " + nodeDesc)
       availableConnections += sock
     }
   }
