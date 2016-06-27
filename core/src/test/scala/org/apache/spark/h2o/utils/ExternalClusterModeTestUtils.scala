@@ -27,7 +27,7 @@ import scala.util.Random
 /**
   * Used to start H2O nodes from scala code
   */
-trait ExternalClusterModeTestUtils extends BeforeAndAfterEach {
+trait ExternalClusterModeTestUtils {
   self: Suite =>
 
   @transient var cloudProcesses: Seq[Process] = null
