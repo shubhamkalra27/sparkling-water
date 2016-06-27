@@ -112,7 +112,8 @@ object ConverterUtils {
     converterContext
   }
 
-  def getReadConverterContext(isExternalBackend: Boolean, keyName: String, chksLocation: Map[Int, NodeDesc], types: Array[Byte], chunkIdx: Int): ReadConverterContext = {
+  def getReadConverterContext(isExternalBackend: Boolean, keyName: String, chksLocation: Map[Int, NodeDesc],
+                              types: Array[Byte], chunkIdx: Int): ReadConverterContext = {
     val converterContext = if (isExternalBackend) {
       new ExternalReadConverterContext(keyName, chunkIdx, chksLocation(chunkIdx), types)
     } else {
