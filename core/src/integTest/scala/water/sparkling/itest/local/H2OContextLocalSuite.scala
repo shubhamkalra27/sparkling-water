@@ -36,7 +36,7 @@ class H2OContextLocalSuite extends FunSuite
     sc = new SparkContext("local[*]", "test-local", defaultSparkConf)
 
     // start h2o cloud in case of external cluster mode
-    if(testsInExternalMode){
+    if(testsInExternalMode(sc.getConf)){
       startCloud(1, sc.getConf)
     }
 
@@ -51,7 +51,7 @@ class H2OContextLocalSuite extends FunSuite
     assert(water.H2O.store_size() == 1)
 
     // stop h2o cloud in case of external cluster mode
-    if(testsInExternalMode){
+    if(testsInExternalMode(sc.getConf)){
       stopCloud()
     }
     // Reset this context
