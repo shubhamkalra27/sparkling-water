@@ -38,10 +38,7 @@ class InternalWriteConverterContext extends WriteConverterContext{
 
   override def put(columnNum: Int, n: Timestamp): Unit = nchnks(columnNum).addNum(n.getTime)
 
-  override def put(columnNum: Int, n: String): Unit = {
-    val valStr = new BufferedString()
-    nchnks(columnNum).addStr(valStr.setTo(n))
-  }
+  override def put(columnNum: Int, str: String): Unit = nchnks(columnNum).addStr(new BufferedString(str))
 
   override def putNA(columnNum: Int): Unit = nchnks(columnNum).addNA()
 
