@@ -3,6 +3,7 @@ package water.sparkling.itest
 import java.io.{PrintWriter, StringWriter}
 import java.net.InetAddress
 
+import org.apache.spark.h2o.backends.SharedH2OConf
 import org.apache.spark.h2o.backends.SharedH2OConf._
 import org.apache.spark.h2o.backends.external.ExternalBackendConf
 import org.apache.spark.h2o.utils.ExternalClusterModeTestUtils
@@ -37,7 +38,6 @@ trait IntegTestHelper extends BeforeAndAfterEach with ExternalClusterModeTestUti
       Seq("--conf", s"spark.driver.extraJavaOptions=-XX:MaxPermSize=384m -Dhdp.version=${env.hdpVersion}") ++
       Seq("--conf", s"spark.yarn.am.extraJavaOptions=-XX:MaxPermSize=384m -Dhdp.version=${env.hdpVersion}") ++
       Seq("--conf", s"spark.executor.extraJavaOptions=-XX:MaxPermSize=384m -Dhdp.version=${env.hdpVersion}") ++
-      Seq("--conf", s"spark.ext.h2o.backend.cluster.mode=${sys.props.getOrElse("spark.ext.h2o.backend.cluster.mode", "internal")}") ++
       Seq("--conf", "spark.scheduler.minRegisteredResourcesRatio=1") ++
       Seq("--conf", "spark.ext.h2o.repl.enabled=false") ++ // disable repl in tests
       Seq("--conf", s"spark.test.home=${env.sparkHome}") ++
@@ -67,7 +67,10 @@ trait IntegTestHelper extends BeforeAndAfterEach with ExternalClusterModeTestUti
     val cloudSize = 2
     testEnv.sparkConf += ExternalBackendConf.PROP_EXTERNAL_H2O_NODES._1 -> cloudSize.toString
     if(testsInExternalMode){
+      testEnv.sparkConf += SharedH2OConf.PROP_BACKEND_CLUSTER_MODE._1 -> "external"
       startCloud(cloudSize, cloudName, InetAddress.getLocalHost.getHostAddress)
+    }else{
+      testEnv.sparkConf += SharedH2OConf.PROP_BACKEND_CLUSTER_MODE._1 -> "internal"
     }
   }
 
