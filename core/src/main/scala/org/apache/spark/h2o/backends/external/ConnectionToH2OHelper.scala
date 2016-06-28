@@ -40,10 +40,9 @@ object ConnectionToH2OHelper {
     private val availableConnections = new mutable.SynchronizedQueue[SocketChannel]()
     def getAvailableConnection(): SocketChannel = this.synchronized {
       if(availableConnections.isEmpty){
-        System.out.println("Creating connection for " + nodeDesc)
         getConnection(nodeDesc)
       }else{
-        val socketChannel =  availableConnections.dequeue()
+        val socketChannel = availableConnections.dequeue()
         if(!socketChannel.isOpen || !socketChannel.isConnected){
           // connection closed, open a new one to replace it
           getConnection(nodeDesc)

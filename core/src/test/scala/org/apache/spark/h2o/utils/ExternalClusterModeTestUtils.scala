@@ -55,6 +55,8 @@ trait ExternalClusterModeTestUtils {
 
   def startCloud(cloudSize: Int, cloudName: String, ip: String): Unit = {
     cloudProcesses = (1 to cloudSize).map { _ => launchSingle(cloudName, ip) }
+    // Wait before h2o nodes can be used
+    Thread.sleep(2000)
   }
 
   def startCloud(cloudSize: Int, sparkConf: SparkConf): Unit = {
