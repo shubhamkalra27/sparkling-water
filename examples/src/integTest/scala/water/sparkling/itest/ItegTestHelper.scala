@@ -66,7 +66,7 @@ trait IntegTestHelper extends BeforeAndAfterEach with ExternalClusterModeTestUti
     testEnv.sparkConf += PROP_CLIENT_IP._1 -> InetAddress.getLocalHost.getHostAddress
     val cloudSize = 2
     testEnv.sparkConf += ExternalBackendConf.PROP_EXTERNAL_H2O_NODES._1 -> cloudSize.toString
-    if(testsInExternalMode){
+    if(testsInExternalMode()){
       testEnv.sparkConf += SharedH2OConf.PROP_BACKEND_CLUSTER_MODE._1 -> "external"
       startCloud(cloudSize, cloudName, InetAddress.getLocalHost.getHostAddress)
     }else{
@@ -76,7 +76,7 @@ trait IntegTestHelper extends BeforeAndAfterEach with ExternalClusterModeTestUti
 
   override protected def afterEach(): Unit = {
     testEnv = null
-    if(testsInExternalMode){
+    if(testsInExternalMode()){
       stopCloud()
     }
     super.afterEach()

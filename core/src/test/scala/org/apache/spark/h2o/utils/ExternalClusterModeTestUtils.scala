@@ -62,7 +62,17 @@ trait ExternalClusterModeTestUtils {
   def startCloud(cloudSize: Int, sparkConf: SparkConf): Unit = {
     startCloud(cloudSize, sparkConf.get(PROP_CLOUD_NAME._1), sparkConf.get(PROP_CLIENT_IP._1))
   }
-  def testsInExternalMode(conf: SparkConf): Boolean = conf.getOption(PROP_BACKEND_CLUSTER_MODE._1).getOrElse(PROP_BACKEND_CLUSTER_MODE._2) == "external"
+  def testsInExternalMode(conf: Option[SparkConf] = None): Boolean = {
+    if(conf.isDefined){
+      conf.get.getOption(PROP_BACKEND_CLUSTER_MODE._1).getOrElse(PROP_BACKEND_CLUSTER_MODE._2) == "external"
+    }else{
+      sys.props.getOrElse(PROP_BACKEND_CLUSTER_MODE._1, PROP_BACKEND_CLUSTER_MODE._2) == "external"
+    }
+  }
+
+  def testsInExternalMode(conf: SparkConf): Boolean = {
+    testsInExternalMode(Option(conf))
+  }
 
   def stopCloud(): Unit = {
     if (cloudProcesses != null) {
