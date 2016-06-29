@@ -17,9 +17,12 @@
 
 package org.apache.spark.h2o.backends.external
 
+import java.net.InetSocketAddress
+import java.nio.{ByteOrder, ByteBuffer}
 import java.nio.channels.SocketChannel
 
 import org.apache.spark.h2o.utils.NodeDesc
+import water.AutoBufferUtils
 
 import scala.collection.mutable
 
@@ -34,15 +37,34 @@ object ConnectionToH2OHelper {
   // ones are free. Programmer then can get connection using getAvailableConnection. This method creates a new connection
   // if all connections are currently used or reuse the existing free one. Programmer needs to put the connection back to the
   // pool of available connections using the method putAvailableConnection
-  private class PerOneNodeConnection(val nodeDesc: NodeDesc) extends ExternalBackendUtils{
+  private class PerOneNodeConnection(val nodeDesc: NodeDesc) {
+
+    private def getConnection(nodeDesc: NodeDesc): SocketChannel = {
+      val sock = SocketChannel.open()
+      sock.socket().setSendBufferSize(AutoBufferUtils.BBP_BIG_SIZE)
+      val isa = new InetSocketAddress(nodeDesc.hostname, nodeDesc.port + 1) // +1 to connect to internal comm port
+      val res = sock.connect(isa) // Can toss IOEx, esp if other node is still booting up
+      assert(res)
+      sock.configureBlocking(true)
+      assert(!sock.isConnectionPending && sock.isBlocking && sock.isConnected && sock.isOpen)
+      sock.socket().setTcpNoDelay(true)
+      val bb = ByteBuffer.allocate(4).order(ByteOrder.nativeOrder())
+      bb.put(3.asInstanceOf[Byte]).putChar(sock.socket().getLocalPort.asInstanceOf[Char]).put(0xef.asInstanceOf[Byte]).flip()
+      while (bb.hasRemaining) {
+        // Write out magic startup sequence
+        sock.write(bb)
+      }
+      sock
+    }
 
     // ordered list of connections where the available connections are at the start of the list and the used at the end.
-    private val availableConnections = new mutable.SynchronizedQueue[SocketChannel]()
-    def getAvailableConnection(): SocketChannel = this.synchronized {
+    private val availableConnections = new mutable.SynchronizedQueue[(SocketChannel, Long)]()
+    def getAvailableConnection(): SocketChannel = {
       if(availableConnections.isEmpty){
         getConnection(nodeDesc)
       }else{
-        val socketChannel = availableConnections.dequeue()
+
+        val socketChannel = availableConnections.dequeue()._1
         if(!socketChannel.isOpen || !socketChannel.isConnected){
           // connection closed, open a new one to replace it
           getConnection(nodeDesc)
@@ -53,22 +75,37 @@ object ConnectionToH2OHelper {
     }
 
     def putAvailableConnection(sock: SocketChannel): Unit = {
-      availableConnections += sock
+      availableConnections += ((sock, System.currentTimeMillis()))
+
+      // after each put start this cleaning thread
+      val waitTime = 1000 // 1 second
+      new Thread(){
+        override def run(): Unit = {
+          Thread.sleep(waitTime)
+          availableConnections.filter{
+          case (socket, lastTimeUsed) =>  if (System.currentTimeMillis() - lastTimeUsed > waitTime) {
+            socket.close()
+            false
+          }else{
+            true
+          }
+        }
+        }
+      }.start()
     }
   }
 
   // this map is created in each executor so we don't have to specify executor Id
   private[this] val connectionMap = mutable.HashMap.empty[NodeDesc, PerOneNodeConnection]
 
-  def getOrCreateConnection(nodeDesc: NodeDesc): SocketChannel = this.synchronized{
+  def getOrCreateConnection(nodeDesc: NodeDesc): SocketChannel = connectionMap.synchronized{
     if(!connectionMap.contains(nodeDesc)){
       connectionMap += nodeDesc -> new PerOneNodeConnection(nodeDesc)
     }
     connectionMap.get(nodeDesc).get.getAvailableConnection()
   }
 
-  def putAvailableConnection(nodeDesc: NodeDesc, sock: SocketChannel): Unit = this.synchronized{
-
+  def putAvailableConnection(nodeDesc: NodeDesc, sock: SocketChannel): Unit = connectionMap.synchronized{
     if(!connectionMap.contains(nodeDesc)){
       connectionMap += nodeDesc -> new PerOneNodeConnection(nodeDesc)
     }

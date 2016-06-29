@@ -19,8 +19,8 @@ package org.apache.spark.h2o.backends.external
 
 import org.apache.spark.h2o.converters.ReadConverterContext
 import org.apache.spark.h2o.utils.NodeDesc
-import water.{UDP, AutoBuffer, AutoBufferUtils, ExternalFrameHandler}
 import water.AutoBufferUtils._
+import water.{AutoBuffer, AutoBufferUtils, ExternalFrameHandler}
 /**
   *
   * @param keyName key name of frame to query data from
@@ -30,19 +30,18 @@ import water.AutoBufferUtils._
 class ExternalReadConverterContext(override val keyName: String, override val chunkIdx: Int,
                                     val nodeDesc: NodeDesc, types: Array[Byte]) extends ExternalBackendUtils with ReadConverterContext {
 
-  private val socketChannel = ExternalBackendUtils.getConnection(nodeDesc)
+  private val socketChannel = ConnectionToH2OHelper.getOrCreateConnection(nodeDesc)
   private val inputAb = createInputAutoBuffer()
   private val numOfRows: Int =  AutoBufferUtils.getInt(inputAb)
   private def createInputAutoBuffer(): AutoBuffer = {
     val ab = new AutoBuffer()
-    AutoBufferUtils.putUdp(UDP.udp.external_frame, ab)
+    ab.put1(ExternalFrameHandler.INIT_BYTE)
     ab.putInt(ExternalFrameHandler.DOWNLOAD_FRAME)
     ab.putStr(keyName)
     ab.putA1(types)
     ab.putInt(chunkIdx)
     writeToChannel(ab, socketChannel)
     val inAb = AutoBufferUtils.create(socketChannel)
-    AutoBufferUtils.getPort(inAb) // skip 3 bytes - 1 for type and 2 for port set by ab.putUdp
     inAb
   }
 
@@ -66,7 +65,7 @@ class ExternalReadConverterContext(override val keyName: String, override val ch
     val isNext = super.hasNext
     if(!isNext){
       // close socket channel after we get the last element
-      socketChannel.close()
+      ConnectionToH2OHelper.putAvailableConnection(nodeDesc, socketChannel)
     }
     isNext
   }

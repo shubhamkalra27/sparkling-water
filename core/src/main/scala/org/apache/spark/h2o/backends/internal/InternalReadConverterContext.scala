@@ -52,7 +52,7 @@ class InternalReadConverterContext(override val keyName: String, override val ch
       uuid.toString
     } else{
       assert(assertion = false, "Should never be here")
-      null // to make the compiler happy
+      null
     }
   }
 

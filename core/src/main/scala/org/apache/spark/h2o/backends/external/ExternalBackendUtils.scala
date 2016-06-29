@@ -17,14 +17,10 @@
 
 package org.apache.spark.h2o.backends.external
 
-import java.net.InetSocketAddress
-import java.nio.channels.SocketChannel
-import java.nio.{ByteBuffer, ByteOrder}
-
 import org.apache.spark.h2o.H2OConf
-import org.apache.spark.h2o.backends.{SharedH2OConf, SharedBackendUtils}
+import org.apache.spark.h2o.backends.SharedBackendUtils
 import org.apache.spark.h2o.utils.NodeDesc
-import water.{AutoBufferUtils, AutoBuffer, H2O}
+import water.H2O
 
 /**
   * Various helper methods used in the external backend
@@ -38,24 +34,6 @@ private[external] trait ExternalBackendUtils extends SharedBackendUtils{
     */
   override def getH2OClientArgs(conf: H2OConf): Array[String] = {
     Array("-md5skip")++getH2OClientConnectionArgs(conf)++super.getH2OClientArgs(conf)
-  }
-
-  def getConnection(nodeDesc: NodeDesc): SocketChannel = {
-    val sock = SocketChannel.open()
-    sock.socket().setSendBufferSize(AutoBufferUtils.BBP_BIG_SIZE)
-    val isa = new InetSocketAddress(nodeDesc.hostname, nodeDesc.port + 1) // +1 to connect to internal comm port
-    val res = sock.connect(isa) // Can toss IOEx, esp if other node is still booting up
-    assert(res)
-    sock.configureBlocking(true)
-    assert(!sock.isConnectionPending && sock.isBlocking && sock.isConnected && sock.isOpen)
-    sock.socket().setTcpNoDelay(true)
-    val bb = ByteBuffer.allocate(4).order(ByteOrder.nativeOrder())
-    bb.put(2.asInstanceOf[Byte]).putChar(sock.socket().getLocalPort.asInstanceOf[Char]).put(0xef.asInstanceOf[Byte]).flip()
-    while (bb.hasRemaining) {
-      // Write out magic startup sequence
-      sock.write(bb)
-    }
-    sock
   }
 
   def cloudMembers = H2O.CLOUD.members().map(NodeDesc.fromH2ONode)

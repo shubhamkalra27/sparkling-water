@@ -21,7 +21,7 @@ import org.apache.spark.h2o._
 import org.apache.spark.h2o.converters.WriteConverterContext
 import org.apache.spark.h2o.utils.NodeDesc
 import water.AutoBufferUtils._
-import water.{AutoBuffer, AutoBufferUtils, ExternalFrameHandler, UDP}
+import water.{AutoBuffer, AutoBufferUtils, ExternalFrameHandler}
 
 class ExternalWriteConverterContext(nodeDesc: NodeDesc) extends ExternalBackendUtils with WriteConverterContext {
 
@@ -39,8 +39,10 @@ class ExternalWriteConverterContext(nodeDesc: NodeDesc) extends ExternalBackendU
     AutoBufferUtils.clearForWriting(ab)
     ab.putInt(ExternalFrameHandler.CLOSE_NEW_CHUNK)
     writeToChannel(ab, socketChannel)
-
-    // put connection back to the pool of free connections
+    val confirmAb = AutoBufferUtils.create(socketChannel)
+    // this needs to be here because confirmAb forces this code to wait
+    // for all the work to be done on the recipient side. The assert is just additional, not so important check
+    assert(confirmAb.get1()==1)
     ConnectionToH2OHelper.putAvailableConnection(nodeDesc, socketChannel)
   }
 
@@ -49,7 +51,7 @@ class ExternalWriteConverterContext(nodeDesc: NodeDesc) extends ExternalBackendU
     */
   override def createChunks(keystr: String, vecTypes: Array[Byte], chunkId: Int): Unit = {
     AutoBufferUtils.clearForWriting(ab)
-    AutoBufferUtils.putUdp(UDP.udp.external_frame, ab)
+    ab.put1(ExternalFrameHandler.INIT_BYTE)
     ab.putInt(ExternalFrameHandler.CREATE_FRAME)
     ab.putInt(ExternalFrameHandler.CREATE_NEW_CHUNK)
     ab.putStr(keystr)
@@ -61,7 +63,7 @@ class ExternalWriteConverterContext(nodeDesc: NodeDesc) extends ExternalBackendU
 
   override def put(columnNum: Int, n: Number) = {
     AutoBufferUtils.clearForWriting(ab)
-    ab.putInt(ExternalFrameHandler.ADD_TO_FRAME)
+    ab.putInt(ExternalFrameHandler.ADD_TO_CHUNK)
     ab.putInt(ExternalFrameHandler.TYPE_NUM)
     ab.putInt(columnNum)
     ab.put8d(n.doubleValue())
@@ -71,7 +73,7 @@ class ExternalWriteConverterContext(nodeDesc: NodeDesc) extends ExternalBackendU
 
   override def put(columnNum: Int, n: Boolean) = {
     AutoBufferUtils.clearForWriting(ab)
-    ab.putInt(ExternalFrameHandler.ADD_TO_FRAME)
+    ab.putInt(ExternalFrameHandler.ADD_TO_CHUNK)
     ab.putInt(ExternalFrameHandler.TYPE_NUM)
     ab.putInt(columnNum)
     ab.put8d(if (n) 1 else 0)
@@ -80,7 +82,7 @@ class ExternalWriteConverterContext(nodeDesc: NodeDesc) extends ExternalBackendU
 
   override def put(columnNum: Int, n: java.sql.Timestamp) = {
     AutoBufferUtils.clearForWriting(ab)
-    ab.putInt(ExternalFrameHandler.ADD_TO_FRAME)
+    ab.putInt(ExternalFrameHandler.ADD_TO_CHUNK)
     ab.putInt(ExternalFrameHandler.TYPE_NUM)
     ab.putInt(columnNum)
     ab.put8d(n.getTime())
@@ -89,7 +91,7 @@ class ExternalWriteConverterContext(nodeDesc: NodeDesc) extends ExternalBackendU
 
   override def put(columnNum: Int, n: String) = {
     AutoBufferUtils.clearForWriting(ab)
-    ab.putInt(ExternalFrameHandler.ADD_TO_FRAME)
+    ab.putInt(ExternalFrameHandler.ADD_TO_CHUNK)
     ab.putInt(ExternalFrameHandler.TYPE_STR)
     ab.putInt(columnNum)
     ab.putStr(n)
@@ -98,7 +100,7 @@ class ExternalWriteConverterContext(nodeDesc: NodeDesc) extends ExternalBackendU
 
   override def putNA(columnNum: Int) = {
     AutoBufferUtils.clearForWriting(ab)
-    ab.putInt(ExternalFrameHandler.ADD_TO_FRAME)
+    ab.putInt(ExternalFrameHandler.ADD_TO_CHUNK)
     ab.putInt(ExternalFrameHandler.TYPE_NA)
     ab.putInt(columnNum)
     writeToChannel(ab, socketChannel)

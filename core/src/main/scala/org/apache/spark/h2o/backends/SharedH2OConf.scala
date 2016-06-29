@@ -71,6 +71,16 @@ trait SharedH2OConf {
     setBackendClusterMode("internal")
     self
   }
+
+  def setReplDisabled(): H2OConf = {
+    sparkConf.set(PROP_REPL_ENABLED._1, false.toString)
+    self
+  }
+  def setReplEnabled(): H2OConf = {
+    sparkConf.set(PROP_REPL_ENABLED._1, true.toString)
+    self
+  }
+
   def setExternalClusterMode(): H2OConf = {
     setBackendClusterMode("external")
     self

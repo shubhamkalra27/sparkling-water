@@ -18,17 +18,13 @@
 package water
 
 import java.nio.channels.SocketChannel
-import java.nio.{ByteOrder, ByteBuffer}
 
 
 object AutoBufferUtils {
 
-  def putUdp(udpType: UDP.udp, ab: AutoBuffer) = ab.putUdp(udpType)
-
   def getInt(ab: AutoBuffer): Int = ab.getInt
-  def getPort(ab: AutoBuffer): Int = ab.getPort
 
-  def create(socketChannel: SocketChannel) = new AutoBuffer(socketChannel)
+  def create(socketChannel: SocketChannel) = new AutoBuffer(socketChannel, false)
 
   def writeToChannel(ab: AutoBuffer, channel: SocketChannel): Unit = {
     ab.flipForReading()

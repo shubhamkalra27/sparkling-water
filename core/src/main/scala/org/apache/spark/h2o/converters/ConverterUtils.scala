@@ -79,7 +79,7 @@ private[converters] trait ConverterUtils {
     * @param func conversion function - the function takes parameters needed extra by specific transformations
     *             and returns function which does the general transformation
     * @tparam T type of RDD to convert
-    * @return pair (partition ID, number of rows in that partition)
+    * @return H2O Frame
     */
   def convert[T](hc: H2OContext, rdd : RDD[T], keyName: String, colNames: Array[String], vecTypes: Array[Byte],
                  func: ( (String, Array[Byte], Option[immutable.Map[Int, NodeDesc]]) => (TaskContext, Iterator[T]) => (Int, Long))) = {
