@@ -106,7 +106,7 @@ sc.addFile(_locate(chicagoCrimes10k))
 # located on current node and distributes it to the H2O cluster)
 f_weather = h2o.upload_file(SparkFiles.get(chicagoAllWeather))
 f_census = h2o.upload_file(SparkFiles.get(chicagoCensus))
-f_crimes = h2o.upload_file(SparkFiles.get(chicagoCrimes10k))
+f_crimes = h2o.upload_file(SparkFiles.get(chicagoCrimes10k), col_types = {"Date": "string"})
 
 
 # Transform weather table
