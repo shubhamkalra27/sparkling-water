@@ -17,6 +17,8 @@
 
 package org.apache.spark.h2o.backends
 
+import java.io.File
+
 import org.apache.spark.{Logging, SparkEnv}
 import org.apache.spark.h2o.H2OConf
 
@@ -111,6 +113,35 @@ private[backends] trait SharedBackendUtils extends Logging with Serializable{
       ("-user_name", conf.userName.orNull)
     ).filter(_._2 != null).flatMap(x => Seq(x._1, x._2.toString))
     ).toArray
+
+  val TEMP_DIR_ATTEMPTS = 1000
+
+  private def createTempDir(): File = {
+    def baseDir = new File(System.getProperty("java.io.tmpdir"))
+    def baseName = System.currentTimeMillis() + "-"
+
+    var cnt = 0
+    while (cnt < TEMP_DIR_ATTEMPTS) {
+      // infinite loop
+      val tempDir = new File(baseDir, baseName + cnt)
+      if (tempDir.mkdir()) return tempDir
+      cnt += 1
+    }
+    throw new IllegalStateException(s"Failed to create temporary directory ${baseDir} / ${baseName}")
+  }
+
+  def saveAsFile(content: String): File = {
+    val tmpDir = createTempDir()
+    tmpDir.deleteOnExit()
+    val flatFile = new File(tmpDir, "flatfile.txt")
+    val p = new java.io.PrintWriter(flatFile)
+    try {
+      p.print(content)
+    } finally {
+      p.close()
+    }
+    flatFile
+  }
 }
 
 object SharedBackendUtils extends SharedBackendUtils

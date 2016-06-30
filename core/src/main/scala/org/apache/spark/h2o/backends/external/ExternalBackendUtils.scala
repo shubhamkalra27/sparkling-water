@@ -39,8 +39,8 @@ private[external] trait ExternalBackendUtils extends SharedBackendUtils{
   def cloudMembers = H2O.CLOUD.members().map(NodeDesc.fromH2ONode)
 
   private[this] def getH2OClientConnectionArgs(conf: H2OConf): Array[String] = {
-    if (conf.flatFilePath.isDefined) {
-      Array("-flatfile", conf.flatFilePath.get)
+    if (conf.h2oCluster.isDefined) {
+      Array("-flatfile", saveAsFile(conf.h2oCluster.get).getAbsolutePath)
     }else{
       Array()
     }

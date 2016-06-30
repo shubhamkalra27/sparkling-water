@@ -27,18 +27,37 @@ trait ExternalBackendConf extends SharedH2OConf {
   self: H2OConf =>
 
   import ExternalBackendConf._
-  def flatFilePath = sparkConf.getOption(PROP_FLAT_FILE_PATH._1)
+  def h2oCluster = sparkConf.getOption(PROP_EXTERNAL_CLUSTER_INFO._1)
+
+  def h2oClusterHost = {
+    val value = sparkConf.getOption(PROP_EXTERNAL_CLUSTER_INFO._1)
+    if (value.isDefined){
+      Option(value.get.split(":")(0))
+    }else{
+      None
+    }
+  }
+
+  def h2oClusterPort = {
+    val value = sparkConf.getOption(PROP_EXTERNAL_CLUSTER_INFO._1)
+    if (value.isDefined){
+      Option(value.get.split(":")(1))
+    }else{
+      None
+    }
+  }
+
   def numOfExternalH2ONodes = sparkConf.getOption(PROP_EXTERNAL_H2O_NODES._1)
   /**
-    * Sets path to flat file containing lines in a form. When H2O is started in external cluster mode it connects to
-    * cluster using this flatfile and cloud name which can be set using setCloudName method on this configuration
-    * node1_ip:node1_port
-    * node2_ip:node2_port
-    * @param flatfilePath path to flat file
+    * Sets node and port representing H2O Cluster to which should H2O connect when started in external mode.
+    * This method automatically sets external cluster mode
+    * @param host host representing the cluster
+    * @param port port representing the cluster
     * @return H2O Configuration
     */
-  def setFlatFilePath(flatfilePath: String): H2OConf = {
-    sparkConf.set(PROP_FLAT_FILE_PATH._1, flatfilePath)
+  def setH2OCluster(host: String, port: Int): H2OConf = {
+    setExternalClusterMode()
+    sparkConf.set(PROP_EXTERNAL_CLUSTER_INFO._1, host+":"+port)
     self
   }
 
@@ -51,7 +70,7 @@ trait ExternalBackendConf extends SharedH2OConf {
     s"""Sparkling Water configuration:
         |  backend cluster mode : ${backendClusterMode}
         |  cloudName            : ${cloudName.get}
-        |  flatfile path        : ${flatFilePath.getOrElse("NOT SET")}
+        |  cloud representant   : ${h2oCluster.getOrElse("Not set, using cloud name only")}
         |  clientBasePort       : ${clientBasePort}
         |  h2oClientLog         : ${h2oClientLogLevel}
         |  nthreads             : ${nthreads}""".stripMargin
@@ -59,7 +78,7 @@ trait ExternalBackendConf extends SharedH2OConf {
 
 object ExternalBackendConf {
   /** Path to flat file representing the cluster to which connect */
-  val PROP_FLAT_FILE_PATH = ("spark.ext.h2o.cloud.flatfile",null.asInstanceOf[String])
+  val PROP_EXTERNAL_CLUSTER_INFO = ("spark.ext.h2o.cloud.info",null.asInstanceOf[String])
 
   /** Number of nodes to wait for when connecting to external H2O cluster */
   val PROP_EXTERNAL_H2O_NODES = ("spark.ext.h2o.external.cluster.num.h2o.nodes", null.asInstanceOf[String])

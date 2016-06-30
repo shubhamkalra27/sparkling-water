@@ -74,19 +74,6 @@ private[internal] trait InternalBackendUtils extends SharedBackendUtils{
     Seq("-log_level", conf.h2oNodeLogLevel, "-baseport", conf.nodeBasePort.toString)).toArray
 
 
-  def saveAsFile(content: String): File = {
-    val tmpDir = createTempDir()
-    tmpDir.deleteOnExit()
-    val flatFile = new File(tmpDir, "flatfile.txt")
-    val p = new java.io.PrintWriter(flatFile)
-    try {
-      p.print(content)
-    } finally {
-      p.close()
-    }
-    flatFile
-  }
-
   def toFlatFileString(executors: Array[NodeDesc]):String = {
     executors.map(en => s"${en.hostname}:${en.port}").mkString("\n")
   }
@@ -202,22 +189,6 @@ private[internal] trait InternalBackendUtils extends SharedBackendUtils{
     }
     // Return flatfile
     flatFile
-  }
-
-  val TEMP_DIR_ATTEMPTS = 1000
-
-  private def createTempDir(): File = {
-    def baseDir = new File(System.getProperty("java.io.tmpdir"))
-    def baseName = System.currentTimeMillis() + "-"
-
-    var cnt = 0
-    while (cnt < TEMP_DIR_ATTEMPTS) {
-      // infinite loop
-      val tempDir = new File(baseDir, baseName + cnt)
-      if (tempDir.mkdir()) return tempDir
-      cnt += 1
-    }
-    throw new IllegalStateException(s"Failed to create temporary directory ${baseDir} / ${baseName}")
   }
 
   private[spark] def guessTotalExecutorSize(sc: SparkContext): Option[Int] = {
