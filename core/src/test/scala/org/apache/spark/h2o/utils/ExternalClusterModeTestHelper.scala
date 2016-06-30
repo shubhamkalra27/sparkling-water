@@ -27,10 +27,10 @@ import scala.util.Random
 /**
   * Used to start H2O nodes from scala code
   */
-trait ExternalClusterModeTestUtils {
+trait ExternalClusterModeTestHelper {
   self: Suite =>
 
-  @transient var cloudProcesses: Seq[Process] = null
+  @transient var nodeProcesses: Seq[Process] = null
 
   lazy val swJar = sys.props.getOrElse("sparkling.assembly.jar", if(sys.env.get("sparkling.assembly.jar").isDefined){
     sys.env.get("sparkling.assembly.jar").get
@@ -54,7 +54,7 @@ trait ExternalClusterModeTestUtils {
   }
 
   def startCloud(cloudSize: Int, cloudName: String, ip: String): Unit = {
-    cloudProcesses = (1 to cloudSize).map { _ => launchSingle(cloudName, ip) }
+    nodeProcesses = (1 to cloudSize).map { _ => launchSingle(cloudName, ip) }
     // Wait before h2o nodes can be used
     Thread.sleep(2000)
   }
@@ -75,9 +75,9 @@ trait ExternalClusterModeTestUtils {
   }
 
   def stopCloud(): Unit = {
-    if (cloudProcesses != null) {
-      cloudProcesses.foreach(_.destroy())
-      cloudProcesses = null
+    if (nodeProcesses != null) {
+      nodeProcesses.foreach(_.destroy())
+      nodeProcesses = null
     }
   }
 }

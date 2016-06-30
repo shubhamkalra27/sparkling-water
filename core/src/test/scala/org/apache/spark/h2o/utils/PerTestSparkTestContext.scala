@@ -17,7 +17,6 @@
 package org.apache.spark.h2o.utils
 
 import org.apache.spark.SparkContext
-import org.apache.spark.h2o.backends.SharedH2OConf._
 import org.apache.spark.h2o.{H2OConf, H2OContext}
 import org.apache.spark.sql.SQLContext
 import org.scalatest.Suite
@@ -37,7 +36,7 @@ trait PerTestSparkTestContext extends SparkTestContext { self: Suite =>
     if(testsInExternalMode(sc.getConf)){
       startCloud(2, sc.getConf)
     }
-    hc = createH2OContext(sc, new H2OConf(sc))
+    hc = createH2OContext(sc, new H2OConf(sc).setNumOfExternalH2ONodes(2))
   }
 
   override protected def afterEach(): Unit = {

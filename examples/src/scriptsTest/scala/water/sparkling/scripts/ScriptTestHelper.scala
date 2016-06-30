@@ -5,7 +5,7 @@ import java.net.InetAddress
 
 import org.apache.spark.h2o.backends.SharedH2OConf._
 import org.apache.spark.h2o.backends.external.ExternalBackendConf
-import org.apache.spark.h2o.utils.ExternalClusterModeTestUtils
+import org.apache.spark.h2o.utils.ExternalClusterModeTestHelper
 import org.apache.spark.repl.h2o.{CodeResults, H2OInterpreter}
 import org.apache.spark.{SparkConf, SparkContext}
 import org.scalatest.{BeforeAndAfterAll, FunSuite, Suite}
@@ -14,7 +14,7 @@ import scala.collection.immutable.HashMap
 import scala.collection.mutable.ListBuffer
 
 
-trait ScriptsTestHelper extends FunSuite with org.apache.spark.Logging with BeforeAndAfterAll with ExternalClusterModeTestUtils{
+trait ScriptsTestHelper extends FunSuite with org.apache.spark.Logging with BeforeAndAfterAll with ExternalClusterModeTestHelper{
   self: Suite =>
   var sparkConf: SparkConf = _
   var sc: SparkContext = _

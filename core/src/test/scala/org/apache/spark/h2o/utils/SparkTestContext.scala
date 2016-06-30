@@ -29,7 +29,7 @@ import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, Suite}
   * Helper trait to simplify initialization and termination of Spark/H2O contexts.
   *
   */
-trait SparkTestContext extends BeforeAndAfterEach with BeforeAndAfterAll with ExternalClusterModeTestUtils{ self: Suite =>
+trait SparkTestContext extends BeforeAndAfterEach with BeforeAndAfterAll with ExternalClusterModeTestHelper{ self: Suite =>
 
   @transient var sc: SparkContext = _
   @transient var hc: H2OContext = _

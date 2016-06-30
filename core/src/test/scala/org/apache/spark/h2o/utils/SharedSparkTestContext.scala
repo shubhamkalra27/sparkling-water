@@ -25,7 +25,7 @@ import org.scalatest.Suite
   * Helper trait to simplify initialization and termination of Spark/H2O contexts.
   *
   */
-trait SharedSparkTestContext extends SparkTestContext with ExternalClusterModeTestUtils { self: Suite =>
+trait SharedSparkTestContext extends SparkTestContext with ExternalClusterModeTestHelper { self: Suite =>
 
 
   def createSparkContext:SparkContext

@@ -6,7 +6,7 @@ import java.net.InetAddress
 import org.apache.spark.h2o.backends.SharedH2OConf
 import org.apache.spark.h2o.backends.SharedH2OConf._
 import org.apache.spark.h2o.backends.external.ExternalBackendConf
-import org.apache.spark.h2o.utils.ExternalClusterModeTestUtils
+import org.apache.spark.h2o.utils.ExternalClusterModeTestHelper
 
 import org.scalatest.{BeforeAndAfterEach, Suite, Tag}
 
@@ -15,7 +15,7 @@ import scala.collection.mutable
 /**
  * Integration test support to be run on top of Spark.
  */
-trait IntegTestHelper extends BeforeAndAfterEach with ExternalClusterModeTestUtils{ self: Suite =>
+trait IntegTestHelper extends BeforeAndAfterEach with ExternalClusterModeTestHelper{ self: Suite =>
 
   private var testEnv: IntegTestEnv = _
 
