@@ -17,9 +17,9 @@
 
 package org.apache.spark.h2o.utils
 
-import org.apache.spark.h2o.backends.SharedH2OConf._
 import org.apache.spark.SparkConf
-import org.scalatest.{BeforeAndAfterEach, Suite}
+import org.apache.spark.h2o.backends.SharedH2OConf._
+import org.scalatest.Suite
 
 import scala.sys.process.Process
 import scala.util.Random
@@ -55,13 +55,14 @@ trait ExternalClusterModeTestHelper {
 
   def startCloud(cloudSize: Int, cloudName: String, ip: String): Unit = {
     nodeProcesses = (1 to cloudSize).map { _ => launchSingle(cloudName, ip) }
-    // Wait before h2o nodes can be used
+    // Wait 2 seconds before h2o nodes can be used
     Thread.sleep(2000)
   }
 
   def startCloud(cloudSize: Int, sparkConf: SparkConf): Unit = {
     startCloud(cloudSize, sparkConf.get(PROP_CLOUD_NAME._1), sparkConf.get(PROP_CLIENT_IP._1))
   }
+
   def testsInExternalMode(conf: Option[SparkConf] = None): Boolean = {
     if(conf.isDefined){
       conf.get.getOption(PROP_BACKEND_CLUSTER_MODE._1).getOrElse(PROP_BACKEND_CLUSTER_MODE._2) == "external"

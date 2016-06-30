@@ -16,12 +16,21 @@ def detectClusterMode(defaultClusterMode = "internal") {
     ].find { h -> h!=null } // first match
     // Return env
 
-    logger.info("* Test will be runnin in '$mode' cluster mode (configure via property 'clusterMode')")
+    logger.info("* Test will be running in '$mode' cluster mode (configure via property 'clusterMode')")
     return mode
 }
+
+//
+// Represents location of H2O jar
+//
+def h2oJarLocation() {
+   return "http://h2o-release.s3.amazonaws.com/h2o/${h2oMajorName != "master" ? "rel-${h2oMajorName}" : "master"}/${h2oBuild}/h2o-${h2oMajorVersion}.${h2oBuild}.zip"
+}
+
 // Export methods by turning them into closures
 ext{
     getOsSpecificCommandLine = this.&getOsSpecificCommandLine
     isWindowsBased = this.&isWindowsBased
     detectClusterMode = this.&detectClusterMode
+    h2oJarLocation = this.&h2oJarLocation
 }

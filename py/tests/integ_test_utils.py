@@ -22,37 +22,45 @@ import unittest
 from pyspark import SparkContext, SparkConf
 import subprocess
 from random import randrange
+import test_utils
+from external_cluster_test_utils import ExternalClusterTestHelper
 
 class IntegTestEnv:
     def __init__(self):
 
-        self.spark_home = IntegTestEnv.get_env_org_fail("SPARK_HOME","The variable 'SPARK_HOME' should point to Spark home directory.")
+        self.spark_home = test_utils.get_env_org_fail("SPARK_HOME","The variable 'SPARK_HOME' should point to Spark home directory.")
 
-        self.spark_master = IntegTestEnv.get_env_org_fail("MASTER",
+        self.spark_master = test_utils.get_env_org_fail("MASTER",
                                                           "The variable 'MASTER' should contain Spark cluster mode.")
-        self.hdp_version = IntegTestEnv.get_env_org_fail("sparkling.test.hdp.version",
+        self.hdp_version =test_utils.get_env_org_fail("sparkling.test.hdp.version",
                                                          "The variable 'sparkling.test.hdp.version' is not set! It should contain version of hdp used")
-        self.egg = IntegTestEnv.get_env_org_fail("sparkling.pysparkling.egg",
+        self.egg = test_utils.get_env_org_fail("sparkling.pysparkling.egg",
                                                               "The variable 'sparkling.pysparkling.egg' is not set! It should point to PySparkling egg file")
         self.spark_conf = {}
         self.verbose = True
 
-    @staticmethod
-    def get_env_org_fail(prop_name, fail_msg):
-        try:
-            return os.environ[prop_name]
-        except KeyError:
-            print fail_msg
-            sys.exit(1)
-
 
 class IntegTestSuite(unittest.TestCase):
+
     @classmethod
     def setUpClass(cls):
         cls.test_env = IntegTestEnv()
+        if ExternalClusterTestHelper.tests_in_external_mode():
+            cloud_name = ExternalClusterTestHelper.unique_cloud_name("integ-test")
+            cloud_ip = ExternalClusterTestHelper.local_ip()
+            cls.external_cluster_test_helper = ExternalClusterTestHelper()
+            cls.conf("spark.ext.h2o.cloud.name", cloud_name)
+            cls.conf("spark.ext.h2o.client.ip", cloud_ip)
+            cls.conf("spark.ext.h2o.backend.cluster.mode", "external")
+            cls.external_cluster_test_helper.start_cloud(2, cloud_name, cloud_ip)
+        else:
+            cls.conf("spark.ext.h2o.backend.cluster.mode", "internal")
+
 
     @classmethod
     def tearDownClass(cls):
+        if ExternalClusterTestHelper.tests_in_external_mode():
+            cls.external_cluster_test_helper.stop_cloud()
         cls.test_env = None
 
     @staticmethod
