@@ -3,7 +3,7 @@ package water.sparkling.itest.local
 import hex.deeplearning.DeepLearning
 import hex.deeplearning.DeepLearningModel.DeepLearningParameters
 import org.apache.spark.SparkContext
-import org.apache.spark.examples.h2o.Airlines
+import org.apache.spark.examples.h2o.{AirlinesParse, Airlines}
 import org.apache.spark.h2o.H2OContext
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SQLContext
@@ -42,7 +42,7 @@ object PubDev928Test extends SparkContextSupport with IntegTestStopper {
     val h2oContext = H2OContext.getOrCreate(sc)
     import h2oContext._
     import h2oContext.implicits._
-    val sqlContext = new SQLContext(sc)
+    implicit val sqlContext = new SQLContext(sc)
     import sqlContext.implicits._
 
     val airlinesData = new H2OFrame(new java.io.File("examples/smalldata/allyears2k_headers.csv.gz"))
@@ -50,7 +50,7 @@ object PubDev928Test extends SparkContextSupport with IntegTestStopper {
     // We need to explicitly repartition data to 12 chunks/partitions since H2O parser handling
     // partitioning dynamically based on available number of CPUs
     println("Number of chunks before query: " + airlinesData.anyVec().nChunks())
-    val airlinesTable: RDD[Airlines] = asRDD[Airlines](airlinesData)
+    val airlinesTable = h2oContext.asDataFrame(airlinesData).map(row => AirlinesParse(row))
     airlinesTable.toDF.registerTempTable("airlinesTable")
 
     val query = "SELECT * FROM airlinesTable WHERE Dest LIKE 'SFO'"

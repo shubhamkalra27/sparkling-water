@@ -26,14 +26,14 @@ trait ScriptsTestHelper extends FunSuite with org.apache.spark.Logging with Befo
     val cloudSize = 2
     sparkConf.set(ExternalBackendConf.PROP_EXTERNAL_H2O_NODES._1, cloudSize.toString)
     sc = new SparkContext(sparkConf)
-    if(testsInExternalMode){
+    if(testsInExternalMode(sc.getConf)){
       startCloud(cloudSize, cloudName, InetAddress.getLocalHost.getHostAddress)
     }
     super.beforeAll()
   }
 
   override protected def afterAll(): Unit = {
-    if(testsInExternalMode){
+    if(testsInExternalMode(sc.getConf)){
       stopCloud()
     }
     if(sc!=null){
