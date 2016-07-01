@@ -57,7 +57,7 @@ trait ExternalBackendConf extends SharedH2OConf {
     */
   def setH2OCluster(host: String, port: Int): H2OConf = {
     setExternalClusterMode()
-    sparkConf.set(PROP_EXTERNAL_CLUSTER_INFO._1, host+":"+port)
+    sparkConf.set(PROP_EXTERNAL_CLUSTER_INFO._1, host + ":" + port)
     self
   }
 
