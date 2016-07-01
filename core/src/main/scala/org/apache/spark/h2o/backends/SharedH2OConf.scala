@@ -97,7 +97,7 @@ object SharedH2OConf{
     * This option can be set either to "internal" or "external"
     * When set to "external" H2O Context is created by connecting to existing H2O cluster, otherwise it creates
     * H2O cluster living in Spark - that means that each Spark executor will have one h2o instance running in it.
-    * This mode is not recommended for big clusters and clusters where Spark executors are not stable.
+    * The internal is not recommended for big clusters and clusters where Spark executors are not stable.
     */
   val PROP_BACKEND_CLUSTER_MODE = ("spark.ext.h2o.backend.cluster.mode", "internal")
 

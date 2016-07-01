@@ -53,7 +53,7 @@ class ExternalH2OBackend(val hc: H2OContext) extends SparklingBackend with Exter
           |   cloud representative  : ${hc.getConf.h2oCluster.getOrElse(" not set, connecting to cluster in multicast mode")}
           |
           | It is possible that in case you provided only cloud name h2o is not able to cloud up because multicast
-          | communication is limited in your network. In that case please consider setting "${ExternalBackendConf.PROP_EXTERNAL_CLUSTER_INFO._1}"
+          | communication is limited in your network. In that case please consider setting "${ExternalBackendConf.PROP_EXTERNAL_CLUSTER_REPRESENTATIVE._1}"
           | property and starting nodes in h2o cluster with -flatfile option describing the cluster.
         """.stripMargin)
     }
