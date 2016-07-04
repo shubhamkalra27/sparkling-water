@@ -43,7 +43,7 @@ object RestAPIManager {
       override def create(handler: Class[_ <: Handler]): Handler = h2oFramesHandler
     }
 
-    RequestServer.registerEndpoint("getDataFrame","POST", "/3/h2oframes/(?<h2oframe_id>.*)/dataframe",
+    RequestServer.registerEndpoint("getDataFrame","POST", "/3/h2oframes/{h2oframe_id}/dataframe",
       classOf[H2OFramesHandler], "toDataFrame", "Transform H2OFrame with given ID to Spark's DataFrame",
       h2oFramesFactory)
 
@@ -59,10 +59,10 @@ object RestAPIManager {
    RequestServer.registerEndpoint("listRDDs", "GET", "/3/RDDs", classOf[RDDsHandler], "list",
      "Return all RDDs within Spark cloud", rddsFactory)
 
-    RequestServer.registerEndpoint("getRDD", "POST", "/3/RDDs/(?<rdd_id>[0-9]+)", classOf[RDDsHandler],
+    RequestServer.registerEndpoint("getRDD", "POST", "/3/RDDs/{rdd_id}", classOf[RDDsHandler],
       "getRDD", "Get RDD with the given ID from Spark cloud", rddsFactory)
 
-    RequestServer.registerEndpoint("rddToH2OFrame", "POST", "/3/RDDs/(?<rdd_id>[0-9a-zA-Z_]+)/h2oframe",
+    RequestServer.registerEndpoint("rddToH2OFrame", "POST", "/3/RDDs/{rdd_id}/h2oframe",
       classOf[RDDsHandler], "toH2OFrame", "Transform RDD with the given ID to H2OFrame", rddsFactory)
 
   }
@@ -78,11 +78,11 @@ object RestAPIManager {
     RequestServer.registerEndpoint("listDataFrames", "GET", "/3/dataframes",
       classOf[DataFramesHandler], "list", "Return all Spark's DataFrames", dataFramesfactory)
 
-    RequestServer.registerEndpoint("getDataFrame", "POST", "/3/dataframes/(?<dataframe_id>[0-9a-zA-Z_]+)",
+    RequestServer.registerEndpoint("getDataFrame", "POST", "/3/dataframes/{dataframe_id}",
       classOf[DataFramesHandler], "getDataFrame", "Get Spark's DataFrame with the given ID", dataFramesfactory)
 
     RequestServer.registerEndpoint("dataFrametoH2OFrame", "POST",
-      "/3/dataframes/(?<dataframe_id>[0-9a-zA-Z_]+)/h2oframe", classOf[DataFramesHandler], "toH2OFrame",
+      "/3/dataframes/{dataframe_id}/h2oframe", classOf[DataFramesHandler], "toH2OFrame",
       "Transform Spark's DataFrame with the given ID to H2OFrame", dataFramesfactory)
 
   }
@@ -92,7 +92,7 @@ object RestAPIManager {
     def scalaCodeFactory = new HandlerFactory {
       override def create(aClass: Class[_ <: Handler]): Handler = scalaCodeHandler
     }
-    RequestServer.registerEndpoint("interpretScalaCode", "POST" ,"/3/scalaint/(?<session_id>[0-9]+)",
+    RequestServer.registerEndpoint("interpretScalaCode", "POST" ,"/3/scalaint/{session_id}",
       classOf[ScalaCodeHandler], "interpret", "Interpret the code and return the result",
       scalaCodeFactory)
 
@@ -103,7 +103,7 @@ object RestAPIManager {
     RequestServer.registerEndpoint("getScalaSessions", "GET" ,"/3/scalaint",
       classOf[ScalaCodeHandler], "getSessions", "Return all active session IDs", scalaCodeFactory)
 
-    RequestServer.registerEndpoint("destroyScalaSession", "DELETE", "/3/scalaint/(?<session_id>[0-9]+)",
+    RequestServer.registerEndpoint("destroyScalaSession", "DELETE", "/3/scalaint/{session_id}",
       classOf[ScalaCodeHandler], "destroySession", "Return session id for communication with scala interpreter",
       scalaCodeFactory)
   }
