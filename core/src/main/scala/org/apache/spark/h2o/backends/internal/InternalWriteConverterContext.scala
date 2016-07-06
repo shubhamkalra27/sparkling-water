@@ -18,9 +18,9 @@
 package org.apache.spark.h2o.backends.internal
 
 import java.sql.Timestamp
+
 import org.apache.spark.h2o.converters.WriteConverterContext
 import water.fvec.{FrameUtils, NewChunk}
-import water.parser.BufferedString
 
 class InternalWriteConverterContext extends WriteConverterContext{
   var nchnks: Array[NewChunk] = _
@@ -38,7 +38,7 @@ class InternalWriteConverterContext extends WriteConverterContext{
 
   override def put(columnNum: Int, n: Timestamp): Unit = nchnks(columnNum).addNum(n.getTime)
 
-  override def put(columnNum: Int, str: String): Unit = nchnks(columnNum).addStr(new BufferedString(str))
+  override def put(columnNum: Int, str: String): Unit = nchnks(columnNum).addStr(str)
 
   override def putNA(columnNum: Int): Unit = nchnks(columnNum).addNA()
 
